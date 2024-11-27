@@ -15,17 +15,15 @@ options.headless = True
 options.add_argument("--window-size=1920,1200")
 
 
-def json_file():
-    with open("Tunisianet.json", "w") as json_file:
+def json_file(data, filename):
+    with open(filename, "w") as json_file:
         json.dump(data, json_file, indent=4)
     
-def csv_file(data):
+def csv_file(data,filename):
     df = pd.DataFrame(data)
-    data.to_csv('tunisianet.csv', index= False)
-    
+    df.to_csv(filename, index= False)
 
-
-if __name__ == '__main__':
+def scraping():
     names=[]
     references=[]
     prices =[]
@@ -84,8 +82,8 @@ if __name__ == '__main__':
                 details_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "tab2")))
                 details_button.send_keys(Keys.RETURN)
 
-                name_elements = WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "name")))
-                value_elements =  WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "value")))
+                name_elements = WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "name")))
+                value_elements =  WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.CLASS_NAME, "value")))
 
                 name_list = [element.text for element in name_elements]
                 value_list = [element.text for element in value_elements]
@@ -99,20 +97,27 @@ if __name__ == '__main__':
             
                 j+=1
                 driver.back()
+            i+=1
 
-            
-            next_button = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, "//a[@class='next js-search-link']")))
+            if i == value+1:
+                break
+            next_button = WebDriverWait(driver,30).until(EC.element_to_be_clickable((By.XPATH, "//a[@class='next js-search-link']")))
 
             next_button.click()
             WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.CSS_SELECTOR, ".product-title")))
 
-            i += 1
             time.sleep(2)
-
     data={"names": names, 'references': references, 'prices': prices, 'descriptions':descriptions, 'disponibilities':disponibilities}
     data.update(fiche_tech)
-    csv_file(data)
-    json_file(data)
+    return(data)
+    
+    
+
+
+if __name__ == '__main__':
+    data = scraping()
+    csv_file(data,'Tunisianet.csv')
+    json_file(data, "Tunisianet.json")
     
     
     
